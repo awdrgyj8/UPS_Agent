@@ -1,13 +1,24 @@
 from flask import Flask, request, jsonify
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from cryptography.exceptions import InvalidSignature
-import time, json, subprocess, base64, binascii, socket
+import time, json, subprocess, base64, binascii, socket, os
 from pathlib import Path
+from dotenv import load_dotenv
 import sqlite3
 
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_KEY_PATH = BASE_DIR / "Key" / "public_key.pem"
 NONCE_DB_PATH = BASE_DIR / "seen_nonces.db"
+load_dotenv(BASE_DIR / ".env")
+
+def get_agent_port():
+    port = os.getenv("AGENT_PORT")
+    if port is None or port == "":
+        return 5858
+    try:
+        return int(port)
+    except ValueError:
+        raise ValueError("AGENT_PORT 必須是數字")
 
 # load public key
 with open(PUBLIC_KEY_PATH, "rb") as f:
@@ -93,4 +104,4 @@ def shutdown():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5858)
+    app.run(host="0.0.0.0", port=get_agent_port())
